@@ -1,0 +1,179 @@
+<div class="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 sm:p-6 lg:p-8">
+  <div class="w-full max-w-4xl">
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+        AI GitHub Repo Analyzer
+      </h1>
+      <p class="mt-4 text-lg text-gray-400">
+        Analyze, review, and re-implement any public GitHub repository with the power of AI.
+      </p>
+    </header>
+
+    <!-- Input Section -->
+    <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl border border-white/20">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <input
+          type="text"
+          placeholder="Enter public GitHub repository URL..."
+          [value]="repoUrl()"
+          (input)="repoUrl.set($event.target.value)"
+          class="flex-grow bg-gray-800 border border-gray-600 text-white placeholder-gray-500 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+        />
+        <button
+          (click)="onAnalyzeRepo()"
+          [disabled]="appState() === 'loading'"
+          class="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-pink-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center"
+        >
+          @if (appState() === 'loading') {
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Analyzing...</span>
+          } @else {
+            <span>Analyze & Re-implement</span>
+          }
+        </button>
+      </div>
+      
+      <div class="mt-4">
+        <label for="gh-token" class="block text-sm font-medium text-gray-400 mb-1">
+          GitHub Token (Optional)
+        </label>
+        <input
+          id="gh-token"
+          type="password"
+          placeholder="Enter your GitHub Personal Access Token to avoid rate limits"
+          [value]="githubToken()"
+          (input)="githubToken.set($event.target.value)"
+          class="w-full bg-gray-800 border border-gray-600 text-white placeholder-gray-500 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+        />
+        <p class="mt-2 text-xs text-gray-500">
+          A token helps avoid GitHub's API rate limits. Your token is only used in your browser and is never stored.
+          <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer" class="text-purple-400 hover:underline">
+            Create a new token
+          </a> (no permissions needed for public repos).
+        </p>
+      </div>
+    </div>
+
+    <!-- Status & Results -->
+    <main class="mt-8">
+      @if (appState() === 'error') {
+        <div class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+          <h3 class="font-bold">An Error Occurred</h3>
+          <p>{{ errorMessage() }}</p>
+        </div>
+      }
+
+      @if (appState() !== 'idle') {
+        <div class="bg-white/5 backdrop-blur-lg rounded-xl p-6 shadow-lg border border-white/10 space-y-6">
+          <!-- Status Steps -->
+          <div>
+            <h2 class="text-2xl font-bold mb-4 text-gray-200">Progress</h2>
+            <div class="space-y-4">
+              @for (step of statusSteps(); track step.id) {
+                <div>
+                  <div class="flex items-center text-lg">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-full mr-4" [class]="{
+                      'bg-gray-700 border-2 border-gray-600': step.status === 'pending',
+                      'bg-blue-500 border-2 border-blue-400': step.status === 'in-progress',
+                      'bg-green-500 border-2 border-green-400': step.status === 'complete',
+                      'bg-red-500 border-2 border-red-400': step.status === 'error'
+                    }">
+                      @if (step.status === 'in-progress') {
+                        <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                      } @else if (step.status === 'complete') {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      } @else if (step.status === 'error') {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      } @else {
+                        <span class="text-sm font-bold text-gray-400">{{ step.id }}</span>
+                      }
+                    </div>
+                    <span [class]="{
+                      'text-gray-500': step.status === 'pending',
+                      'text-white animate-pulse': step.status === 'in-progress',
+                      'text-gray-300': step.status === 'complete'
+                    }">{{ step.text }}</span>
+                  </div>
+                  
+                  <!-- Live reimplemented file list -->
+                  @if (step.id === 4 && step.status === 'in-progress' && reimplementedFiles() && reimplementedFiles()!.length > 0) {
+                    <div class="ml-12 mt-3 border-l-2 border-gray-700 pl-6">
+                      <p class="text-sm text-gray-400 mb-2">Generating files...</p>
+                      <div class="space-y-1 max-h-32 overflow-y-auto pr-2">
+                        @for (file of reimplementedFiles(); track file.path) {
+                          <div class="text-xs font-mono text-cyan-400 bg-gray-800/50 rounded px-2 py-1 animate-fade-in">
+                            {{ file.path }}
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          
+          <!-- Fetched Files Viewer -->
+          @if (fetchedFiles() && fetchedFiles()!.length > 0) {
+            <div class="pt-6 border-t border-white/10">
+              <h2 class="text-2xl font-bold mb-4 text-gray-200">Fetched Source Code Files</h2>
+              <div class="space-y-2 max-h-[40rem] overflow-y-auto pr-2">
+                @for (file of fetchedFiles(); track file.path) {
+                  <div class="rounded-lg bg-gray-900/70 border border-gray-700">
+                    <button (click)="toggleFile(file.path)" class="w-full flex justify-between items-center text-left p-3 font-mono text-sm text-purple-300 hover:bg-white/5 transition-colors">
+                      <span>{{ file.path }}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" [class]="{'rotate-180': expandedFile() === file.path}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    @if (expandedFile() === file.path) {
+                      <div class="p-4 border-t border-gray-700 bg-black/30">
+                        <pre class="text-gray-300 whitespace-pre-wrap text-xs font-mono">{{ file.content }}</pre>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+
+          <!-- Analysis Result -->
+          @if (analysisResult()) {
+            <div class="pt-6 border-t border-white/10">
+              <h2 class="text-2xl font-bold mb-4 text-gray-200">AI Code Analysis</h2>
+              <div class="bg-gray-900/70 rounded-lg p-4 max-h-96 overflow-y-auto border border-gray-700">
+                <pre class="text-gray-300 whitespace-pre-wrap text-sm font-mono">{{ analysisResult() }}</pre>
+              </div>
+            </div>
+          }
+
+          <!-- Download Button -->
+          @if (appState() === 'reimplemented') {
+            <div class="pt-6 border-t border-white/10 text-center">
+               <h2 class="text-2xl font-bold mb-4 text-gray-200">Project Re-implementation Complete</h2>
+              <button
+                (click)="onDownloadZip()"
+                class="px-8 py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold text-lg rounded-lg hover:from-green-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center w-full sm:w-auto mx-auto"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Re-implemented Project (.zip)
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </main>
+
+  </div>
+</div>

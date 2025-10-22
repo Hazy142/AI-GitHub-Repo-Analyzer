@@ -1,0 +1,5 @@
+{
+  "name": "AI GitHub Repo Analyzer",
+  "description": "An AI-powered tool to analyze, review, and re-implement GitHub repositories from scratch using modern best practices. Enter a repository URL to get a complete code review and a downloadable, refactored version of the project.",
+  "requestFramePermissions": []
+}
