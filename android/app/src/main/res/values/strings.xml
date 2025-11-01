@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">lego-build-studio-mobile</string>
+    <string name="title_activity_main">lego-build-studio-mobile</string>
+    <string name="package_name">com.lego.build.studio</string>
+    <string name="custom_url_scheme">com.lego.build.studio</string>
+</resources>
