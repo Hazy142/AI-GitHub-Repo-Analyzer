@@ -132,6 +132,18 @@ interface ShareOption {
 
 type LayerSnapshot = Layer[];
 
+type DrawerView = 'library' | 'palette' | 'steps';
+
+interface WorkspaceToolbarButton {
+  id: string;
+  label: string;
+  icon: string;
+  hint?: string;
+  mode?: TouchMode;
+  drawer?: DrawerView;
+  action?: 'undo' | 'reset' | 'export';
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -148,6 +160,81 @@ export class AppComponent {
     { id: 'projects', label: 'Projects', tagline: 'Manage cloud-synced layouts' },
     { id: 'market', label: 'Marketplace', tagline: 'Curated mobile-ready kits' },
     { id: 'learning', label: 'Learning Lab', tagline: 'Guided missions & courses' },
+  ];
+
+  readonly menuBarItems: string[] = ['Studio', 'File', 'Edit', 'Model', 'View', 'Tools', 'BrickLink', 'Help'];
+
+  readonly workspaceToolbar: WorkspaceToolbarButton[] = [
+    {
+      id: 'select',
+      label: 'Select',
+      icon: 'SEL',
+      hint: 'Tap to place and adjust bricks',
+      mode: 'build',
+    },
+    {
+      id: 'pan',
+      label: 'Pan',
+      icon: 'PAN',
+      hint: 'Drag the canvas view',
+      mode: 'pan',
+    },
+    {
+      id: 'erase',
+      label: 'Erase',
+      icon: 'DEL',
+      hint: 'Remove placed bricks',
+      mode: 'erase',
+    },
+    {
+      id: 'inspect',
+      label: 'Inspect',
+      icon: 'INS',
+      hint: 'Inspect brick metadata',
+      mode: 'inspect',
+    },
+    {
+      id: 'library',
+      label: 'Library',
+      icon: 'LIB',
+      hint: 'Open the brick library panel',
+      drawer: 'library',
+    },
+    {
+      id: 'palette',
+      label: 'Palette',
+      icon: 'CLR',
+      hint: 'Switch active brick colors',
+      drawer: 'palette',
+    },
+    {
+      id: 'steps',
+      label: 'Steps',
+      icon: 'STP',
+      hint: 'Review instruction timeline',
+      drawer: 'steps',
+    },
+    {
+      id: 'undo',
+      label: 'Undo',
+      icon: 'UNDO',
+      hint: 'Undo last change',
+      action: 'undo',
+    },
+    {
+      id: 'reset',
+      label: 'Reset',
+      icon: 'RST',
+      hint: 'Clear the workspace',
+      action: 'reset',
+    },
+    {
+      id: 'export',
+      label: 'Export',
+      icon: 'EXP',
+      hint: 'Generate Android export payload',
+      action: 'export',
+    },
   ];
 
   readonly touchModes: TouchModeConfig[] = [
@@ -530,6 +617,8 @@ export class AppComponent {
 
   private readonly history = signal<LayerSnapshot[]>([]);
 
+  activeDrawer = signal<DrawerView | null>(null);
+
   layers = signal<Layer[]>([
     {
       id: 1,
@@ -541,6 +630,10 @@ export class AppComponent {
   ]);
 
   visibleBricks = computed(() => this.brickCatalog[this.selectedCategoryId()] ?? []);
+
+  activeTouchModeConfig = computed(() =>
+    this.touchModes.find(mode => mode.id === this.selectedTouchMode()) ?? this.touchModes[0],
+  );
 
   activeBrick = computed(() => {
     const bricks = this.visibleBricks();
@@ -597,6 +690,34 @@ export class AppComponent {
   selectTouchMode(mode: TouchMode): void {
     this.selectedTouchMode.set(mode);
     this.logAction('info', 'Touch mode', `Touch mode set to ${mode}.`);
+  }
+
+  handleToolbarButton(button: WorkspaceToolbarButton): void {
+    if (button.mode) {
+      this.selectTouchMode(button.mode);
+    }
+    if (button.drawer) {
+      this.toggleDrawer(button.drawer);
+    }
+    if (button.action === 'undo') {
+      this.undo();
+    }
+    if (button.action === 'reset') {
+      this.clearBoard();
+    }
+    if (button.action === 'export') {
+      this.generateExportPayload();
+    }
+  }
+
+  isToolbarButtonActive(button: WorkspaceToolbarButton): boolean {
+    if (button.mode) {
+      return this.selectedTouchMode() === button.mode;
+    }
+    if (button.drawer) {
+      return this.activeDrawer() === button.drawer;
+    }
+    return false;
   }
 
   selectColor(index: number): void {
@@ -682,6 +803,14 @@ export class AppComponent {
     this.activeLayerIndex.set(Math.max(activeIndex, 0));
     this.logAction('edit', 'Undo', 'Reverted the last canvas update.');
     this.updateStats('Undo');
+  }
+
+  toggleDrawer(drawer: DrawerView): void {
+    this.activeDrawer.set(this.activeDrawer() === drawer ? null : drawer);
+  }
+
+  closeDrawer(): void {
+    this.activeDrawer.set(null);
   }
 
   onCanvasCellTap(row: number, column: number): void {
