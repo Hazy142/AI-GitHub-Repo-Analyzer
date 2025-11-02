@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import {
   AmbientLight,
-  Clock,
   Color,
   DirectionalLight,
   GridHelper,
@@ -77,9 +76,11 @@ export class BuilderCanvasComponent implements AfterViewInit, OnDestroy {
   private ground!: Mesh;
   private raycaster = new Raycaster();
   private pointer = new Vector2();
-  private clock = new Clock();
   private brickGroups = new Map<string, Group>();
-  private animationHandle: number | null = null;
+  private renderLoop = () => {
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
+  };
 
   constructor(
     private readonly zone: NgZone,
@@ -99,7 +100,7 @@ export class BuilderCanvasComponent implements AfterViewInit, OnDestroy {
       this.resizeObserver.observe(this.hostRef.nativeElement);
       this.updateSize();
 
-      this.animationHandle = this.renderer.setAnimationLoop(() => this.renderFrame());
+      this.renderer.setAnimationLoop(this.renderLoop);
     });
 
     const syncEffect = effect(() => {
@@ -114,10 +115,7 @@ export class BuilderCanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.animationHandle !== null) {
-      this.renderer.setAnimationLoop(null);
-      cancelAnimationFrame(this.animationHandle);
-    }
+    this.renderer?.setAnimationLoop(null);
     this.controls?.dispose();
     this.resizeObserver?.disconnect();
     this.disposeScene();
@@ -207,12 +205,6 @@ export class BuilderCanvasComponent implements AfterViewInit, OnDestroy {
     this.renderer.setSize(clientWidth, clientHeight);
     this.camera.aspect = clientWidth / clientHeight;
     this.camera.updateProjectionMatrix();
-  }
-
-  private renderFrame(): void {
-    const delta = this.clock.getDelta();
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
   }
 
   private syncBricks(bricks: PlacedBrick[]): void {

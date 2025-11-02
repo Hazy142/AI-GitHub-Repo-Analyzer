@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
 import { BuilderStoreService } from './services/builder-store.service';
 import { PartCategory, PartDefinition } from './builder/lego-types';
 import { PARTS_BY_CATEGORY } from './builder/part-catalog';
@@ -25,7 +24,7 @@ const CATEGORY_META: CategoryMeta[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NgFor, NgIf, BuilderCanvasComponent, ColorPickerComponent],
+  imports: [BuilderCanvasComponent, ColorPickerComponent],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

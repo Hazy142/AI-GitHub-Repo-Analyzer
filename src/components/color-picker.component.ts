@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { NgFor } from '@angular/common';
 import { BuilderStoreService } from '../services/builder-store.service';
 
 @Component({
   selector: 'app-color-picker',
   standalone: true,
-  imports: [NgFor],
   template: `
     <div class="space-y-4">
       <div>
@@ -32,7 +30,7 @@ import { BuilderStoreService } from '../services/builder-store.service';
         <div class="space-y-1.5">
           <label class="flex items-center justify-between text-[0.65rem] uppercase tracking-wide text-slate-500">
             <span>Hue</span>
-            <span>{{ store.getHsl().hue }}?</span>
+            <span>{{ store.getHsl().hue }}&deg;</span>
           </label>
           <input
             type="range"
