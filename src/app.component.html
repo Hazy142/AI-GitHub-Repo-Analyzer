@@ -1,121 +1,100 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-50">
-  <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-32 sm:px-6 lg:px-8">
-    <header class="pt-12 pb-10 text-center md:text-left">
-      <div class="inline-flex items-center justify-center gap-2 self-center rounded-full border border-cyan-400/50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-cyan-200">
-        Android-first beta
-        <span class="inline-block h-2 w-2 rounded-full bg-cyan-300"></span>
-      </div>
-      <h1 class="mt-6 text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-        LEGO Build Studio Mobile
-      </h1>
-      <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 md:ml-0 md:text-base">
-        Design, iterate, and export BrickLink-compatible models that are optimized for Android touch controls, offline play, and APK delivery.
-      </p>
-    </header>
-
-    <nav class="mb-12 flex flex-wrap justify-center gap-3 md:justify-start">
-      @for (tab of appTabs; track tab.id) {
-        <button
-          type="button"
-          (click)="setActiveTab(tab.id)"
-          class="group flex min-w-[14rem] flex-col rounded-3xl border px-5 py-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-          [style.borderColor]="activeTab() === tab.id ? 'rgba(34,211,238,0.65)' : 'rgba(148,163,184,0.22)'"
-          [style.background]="activeTab() === tab.id ? 'rgba(8,145,178,0.15)' : 'rgba(12,16,32,0.55)'"
-          [style.boxShadow]="activeTab() === tab.id ? '0 18px 35px rgba(14,165,233,0.18)' : 'none'"
-        >
-          <span class="text-sm font-semibold text-white">{{ tab.label }}</span>
-          <span class="mt-1 text-xs text-slate-400">{{ tab.tagline }}</span>
-        </button>
-      }
-    </nav>
-
-    <main class="flex-1 space-y-14">
-      @if (activeTab() === 'builder') {
-        <section class="space-y-10">
-          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Total bricks</p>
-              <p class="mt-2 text-3xl font-bold text-white">{{ sessionStats().totalBricks }}</p>
-              <p class="mt-1 text-xs text-slate-400">Across {{ layers().length }} layer(s)</p>
-            </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Color palette</p>
-              <p class="mt-2 text-3xl font-bold text-white">{{ sessionStats().uniqueColors }}</p>
-              <p class="mt-1 text-xs text-slate-400">Active swatches</p>
-            </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Model density</p>
-              <p class="mt-2 text-3xl font-bold text-white">{{ (sessionStats().density * 100).toFixed(0) }}%</p>
-              <p class="mt-1 text-xs text-slate-400">{{ sessionStats().complexity }} profile</p>
-            </div>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Last action</p>
-              <p class="mt-2 text-lg font-semibold text-white">{{ sessionStats().lastAction || 'Ready to build' }}</p>
-              <p class="mt-1 text-xs text-slate-400">Android export {{ sessionStats().exportReady ? 'ready' : 'pending' }}</p>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              (click)="generateExportPayload()"
-              class="rounded-full border border-emerald-400/60 bg-emerald-500/20 px-5 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"
-            >
-              Generate Android Export
-            </button>
-            <button
-              type="button"
-              (click)="clearBoard()"
-              class="rounded-full border border-rose-400/60 bg-rose-500/20 px-5 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
-            >
-              Reset Workspace
-            </button>
-            <button
-              type="button"
-              (click)="undo()"
-              [disabled]="!actionLog().length"
-              class="rounded-full border border-slate-500/60 bg-slate-800/60 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Undo
-            </button>
-          </div>
-
-          <div class="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <div class="space-y-6">
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <div class="flex flex-wrap gap-3">
-                  @for (mode of touchModes; track mode.id) {
-                    <button
-                      type="button"
-                      (click)="selectTouchMode(mode.id)"
-                      class="rounded-2xl border px-4 py-2 text-left text-sm font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-                      [style.borderColor]="selectedTouchMode() === mode.id ? 'rgba(34,211,238,0.7)' : 'rgba(148,163,184,0.25)'"
-                      [style.background]="selectedTouchMode() === mode.id ? 'rgba(8,145,178,0.22)' : 'rgba(12,18,32,0.7)'"
-                    >
-                      <span>{{ mode.label }}</span>
-                      <span class="mt-1 block text-xs font-normal text-slate-400">{{ mode.description }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <div class="rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900/80 to-slate-950/90 p-4 shadow-xl">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Tactile canvas</p>
-                    <h2 class="text-lg font-semibold text-white">Layer {{ activeLayerIndex() + 1 }} &middot; {{ currentLayer()?.name }}</h2>
-                  </div>
+<div class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="mx-auto flex min-h-screen w-full max-w-5xl flex-col">
+    @if (activeTab() === 'builder') {
+      <section class="flex-1 px-4 pb-32 pt-4 sm:px-6">
+        <div class="space-y-5">
+          <div class="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 shadow-inner shadow-black/20">
+            <div class="flex items-center gap-3">
+              <span class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200">Studio</span>
+              <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap pr-2 text-xs font-semibold text-slate-300">
+                @for (item of menuBarItems; track item) {
                   <button
                     type="button"
-                    (click)="toggleLayerLock(currentLayer()?.id ?? 0)"
-                    class="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
+                    class="rounded-md px-3 py-1 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
                   >
-                    {{ currentLayer()?.isLocked ? 'Unlock' : 'Lock' }} layer
+                    {{ item }}
                   </button>
-                </div>
+                }
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">
+              <span>Mobile Studio</span>
+              <span>BrickLink link ready</span>
+            </div>
+          </div>
 
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3 shadow-lg shadow-slate-950/40">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2 overflow-x-auto">
+                @for (button of workspaceToolbar; track button.id) {
+                  <button
+                    type="button"
+                    (click)="handleToolbarButton(button)"
+                    class="flex min-w-[4.75rem] flex-col items-center justify-center gap-1 rounded-xl border px-3 py-2 text-center text-[0.65rem] font-semibold uppercase tracking-wide transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                    [style.borderColor]="isToolbarButtonActive(button) ? 'rgba(14,165,233,0.7)' : 'rgba(148,163,184,0.25)'"
+                    [style.background]="isToolbarButtonActive(button) ? 'rgba(14,165,233,0.18)' : 'rgba(12,18,32,0.7)'"
+                    [title]="button.hint || button.label"
+                  >
+                    <span class="rounded-md border border-slate-700 px-2 py-1 text-[0.6rem] text-cyan-200">{{ button.icon }}</span>
+                    <span class="text-[0.6rem] text-slate-200">{{ button.label }}</span>
+                  </button>
+                }
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-full border border-emerald-400/60 bg-emerald-500/15 px-4 py-2 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
+                >
+                  Sync
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+            <div class="flex items-center gap-2 overflow-x-auto">
+              @for (project of recentProjects; track project.id) {
+                <button
+                  type="button"
+                  (click)="selectProject(project.id)"
+                  class="flex items-center gap-2 rounded-xl border px-4 py-2 text-left text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                  [style.borderColor]="activeProject()?.id === project.id ? 'rgba(74,222,128,0.7)' : 'rgba(148,163,184,0.2)'"
+                  [style.background]="activeProject()?.id === project.id ? 'rgba(22,101,52,0.3)' : 'rgba(12,16,28,0.7)'"
+                >
+                  <span class="truncate">{{ project.name }}</span>
+                  <span class="rounded-full border border-slate-700 bg-slate-900/70 px-2 py-0.5 text-[0.55rem] uppercase text-slate-400">{{ project.progress }}%</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-[0.6rem] uppercase tracking-[0.35em] text-slate-500">Viewport - Building Area</p>
+                <h2 class="text-xl font-semibold text-white">{{ activeProject()?.name || 'Untitled Model' }}</h2>
+              </div>
+              <div class="text-right text-xs text-slate-400">
+                <p>Mode - {{ activeTouchModeConfig()?.label }}</p>
+                <p>Color - {{ selectedColor().name }}</p>
+              </div>
+            </div>
+            <div class="mt-4 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-black p-3">
+              <div class="relative">
+                @if (activeInstruction(); as instruction) {
+                  <div class="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-full border border-rose-500/40 bg-rose-500/15 px-3 py-1 text-[0.6rem] font-semibold text-rose-100 shadow">
+                    <span>Step {{ instruction.order }}</span>
+                    <span class="hidden sm:inline">{{ instruction.focus }}</span>
+                  </div>
+                }
                 <div
-                  class="mt-4 grid gap-1 rounded-2xl bg-slate-950/80 p-3"
+                  class="grid gap-1"
                   [style.gridTemplateColumns]="'repeat(' + boardSize + ', minmax(0, 1fr))'"
                 >
                   @for (row of currentGrid(); track $index; let rowIndex = $index) {
@@ -123,311 +102,332 @@
                       <button
                         type="button"
                         (click)="onCanvasCellTap(rowIndex, columnIndex)"
-                        class="relative aspect-square rounded-md border border-white/10 text-[0.65rem] font-semibold uppercase tracking-wide transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-                        [style.background]="cell ? cell.color.hex : (isCellHighlighted(rowIndex, columnIndex) ? 'rgba(147,51,234,0.2)' : 'rgba(10,12,28,0.85)')"
-                        [style.boxShadow]="isCellHighlighted(rowIndex, columnIndex) ? '0 0 0 2px rgba(192,132,252,0.4)' : 'none'"
-                        [style.color]="cell ? (cell.color.finish === 'transparent' ? '#7dd3fc' : '#0f172a') : '#475569'"
+                        class="relative aspect-square rounded-sm border text-[0.6rem] font-semibold uppercase tracking-wide transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                        [style.borderColor]="isCellHighlighted(rowIndex, columnIndex) ? 'rgba(168,85,247,0.65)' : 'rgba(51,65,85,0.6)'"
+                        [style.background]="cell ? cell.color.hex : (isCellHighlighted(rowIndex, columnIndex) ? 'rgba(76,29,149,0.35)' : 'rgba(15,23,42,0.85)')"
+                        [style.color]="cell ? (cell.color.finish === 'transparent' ? '#7dd3fc' : '#0f172a') : '#64748b'"
                         title="{{ cell ? cell.brickId : 'Tap to place' }}"
                       >
                         @if (cell) {
                           <span class="drop-shadow">{{ cell.color.name }}</span>
                         } @else if (isCellHighlighted(rowIndex, columnIndex)) {
-                          <span class="text-[0.55rem] text-purple-200">Step marker</span>
+                          <span class="text-[0.55rem] text-purple-200">Guide</span>
                         }
                         @if (inspectorFocus()?.row === rowIndex && inspectorFocus()?.column === columnIndex) {
-                          <span class="absolute inset-1 rounded-md border border-cyan-300/70"></span>
+                          <span class="pointer-events-none absolute inset-1 rounded-sm border border-cyan-300/70"></span>
                         }
                       </button>
                     }
                   }
                 </div>
               </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-2 text-[0.65rem] uppercase tracking-[0.25em] text-slate-400">
+              <span>{{ sessionStats().totalBricks }} total parts</span>
+              <span>Layer {{ activeLayerIndex() + 1 }} of {{ layers().length }}</span>
+              <span>Density {{ (sessionStats().density * 100).toFixed(0) }}%</span>
+            </div>
+          </div>
 
-              @if (activeInstruction(); as instruction) {
-                <div class="rounded-3xl border border-purple-400/40 bg-purple-500/10 p-5">
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p class="text-xs uppercase tracking-[0.35em] text-purple-200/80">Step {{ instruction.order }}</p>
-                      <h3 class="mt-1 text-lg font-semibold text-white">{{ instruction.title }}</h3>
-                    </div>
-                    <span class="rounded-full bg-purple-500/25 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-purple-100">{{ instruction.focus }}</span>
-                  </div>
-                  <p class="mt-3 text-sm text-purple-100/90">{{ instruction.description }}</p>
+          @if (activeInstruction(); as instruction) {
+            <div class="rounded-2xl border border-purple-500/40 bg-purple-500/10 px-4 py-5 shadow-lg shadow-purple-900/40">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-[0.6rem] uppercase tracking-[0.35em] text-purple-200/80">Step {{ instruction.order }}</p>
+                  <h3 class="text-lg font-semibold text-white">{{ instruction.title }}</h3>
                 </div>
-              }
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-semibold text-white">Layers</h3>
-                  <button
-                    type="button"
-                    (click)="addLayer()"
-                    class="rounded-full border border-cyan-400/60 bg-cyan-500/20 px-3 py-1 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/30"
-                  >
-                    Add layer
-                  </button>
-                </div>
-                <div class="mt-4 space-y-3">
-                  @for (layer of layers(); track layer.id; let index = $index) {
-                    <div
-                      class="flex items-center justify-between rounded-2xl border px-4 py-3"
-                      [style.borderColor]="activeLayerIndex() === index ? 'rgba(34,211,238,0.65)' : 'rgba(148,163,184,0.18)'"
-                      [style.background]="activeLayerIndex() === index ? 'rgba(8,145,178,0.18)' : 'rgba(10,14,24,0.75)'"
-                    >
-                      <div>
-                        <p class="text-sm font-semibold text-white">{{ layer.name }}</p>
-                        <p class="text-xs text-slate-400">Elevation {{ layer.elevation }} &middot; {{ boardSize * boardSize }} studs mapped</p>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <button
-                          type="button"
-                          (click)="setActiveLayer(index)"
-                          class="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                        >
-                          Focus
-                        </button>
-                        <button
-                          type="button"
-                          (click)="toggleLayerLock(layer.id)"
-                          class="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1 text-xs text-slate-200 hover:bg-slate-800"
-                        >
-                          {{ layer.isLocked ? 'Unlock' : 'Lock' }}
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
+                <span class="rounded-full bg-purple-500/25 px-4 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-purple-100">{{ instruction.focus }}</span>
               </div>
+              <p class="mt-3 text-sm text-purple-100/90">{{ instruction.description }}</p>
+            </div>
+          }
 
-              @if (inspectorFocus(); as focus) {
-                <div class="rounded-3xl border border-cyan-400/40 bg-cyan-500/10 p-5">
-                  <h3 class="text-lg font-semibold text-white">Brick Inspector</h3>
-                  <div class="mt-3 grid gap-4 text-sm text-slate-200 sm:grid-cols-2">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white">Layers</h3>
+                <button
+                  type="button"
+                  (click)="addLayer()"
+                  class="rounded-full border border-cyan-400/60 bg-cyan-500/15 px-3 py-1 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                >
+                  Add layer
+                </button>
+              </div>
+              <div class="mt-3 space-y-2">
+                @for (layer of layers(); track layer.id; let index = $index) {
+                  <div
+                    class="flex items-center justify-between rounded-xl border px-3 py-2"
+                    [style.borderColor]="activeLayerIndex() === index ? 'rgba(34,211,238,0.6)' : 'rgba(51,65,85,0.6)'"
+                    [style.background]="activeLayerIndex() === index ? 'rgba(8,145,178,0.18)' : 'rgba(12,18,32,0.8)'"
+                  >
                     <div>
-                      <p class="text-xs uppercase tracking-wide text-cyan-200/80">Brick id</p>
-                      <p class="font-semibold text-white">{{ focus.brick.brickId }}</p>
+                      <p class="text-sm font-semibold text-white">{{ layer.name }}</p>
+                      <p class="text-[0.65rem] uppercase tracking-wide text-slate-400">Elevation {{ layer.elevation }} - {{ boardSize * boardSize }} studs</p>
                     </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-cyan-200/80">Color</p>
-                      <p class="font-semibold text-white">{{ focus.brick.color.name }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-cyan-200/80">Position</p>
-                      <p class="font-semibold text-white">Row {{ focus.row + 1 }} &middot; Col {{ focus.column + 1 }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-cyan-200/80">Layer</p>
-                      <p class="font-semibold text-white">{{ focus.layerId }}</p>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="setActiveLayer(index)"
+                        class="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[0.6rem] uppercase text-slate-200 hover:bg-slate-800"
+                      >
+                        Focus
+                      </button>
+                      <button
+                        type="button"
+                        (click)="toggleLayerLock(layer.id)"
+                        class="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[0.6rem] uppercase text-slate-200 hover:bg-slate-800"
+                      >
+                        {{ layer.isLocked ? 'Unlock' : 'Lock' }}
+                      </button>
                     </div>
                   </div>
-                  <p class="mt-3 text-xs text-cyan-100/80">{{ focus.brick.metadata.notes }}</p>
-                </div>
-              }
-
-              @if (exportPreview(); as exportJson) {
-                <div class="rounded-3xl border border-emerald-400/40 bg-emerald-500/10 p-5">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Android Export Payload</h3>
-                    <button
-                      type="button"
-                      (click)="closeExportPreview()"
-                      class="rounded-full border border-emerald-300/50 bg-emerald-500/20 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-500/30"
-                    >
-                      Close
-                    </button>
-                  </div>
-                  <pre class="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap text-xs text-emerald-100/90">{{ exportJson }}</pre>
-                </div>
-              }
+                }
+              </div>
             </div>
 
-            <div class="space-y-6">
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <h3 class="text-lg font-semibold text-white">Brick Library</h3>
-                <div class="mt-3 flex flex-wrap gap-2">
+            @if (activeBrick(); as brick) {
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+                <h3 class="text-sm font-semibold text-white">Active Brick</h3>
+                <p class="mt-1 text-xs text-slate-300">{{ brick.recommendedUse }}</p>
+                <div class="mt-3 space-y-2 text-sm text-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wide text-slate-400">Identifier</span>
+                    <span class="font-semibold text-white">{{ brick.id }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wide text-slate-400">Studs</span>
+                    <span class="font-semibold text-white">{{ brick.studs }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wide text-slate-400">Geometry</span>
+                    <span class="font-semibold text-white">{{ brick.geometry }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wide text-slate-400">Complexity</span>
+                    <span class="font-semibold text-white">{{ brick.complexity }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <h3 class="text-sm font-semibold text-white">Session Stats</h3>
+              <div class="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-300">
+                <div class="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                  <p class="text-[0.6rem] uppercase tracking-wide text-slate-500">Total bricks</p>
+                  <p class="mt-1 text-lg font-semibold text-white">{{ sessionStats().totalBricks }}</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                  <p class="text-[0.6rem] uppercase tracking-wide text-slate-500">Unique colors</p>
+                  <p class="mt-1 text-lg font-semibold text-white">{{ sessionStats().uniqueColors }}</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                  <p class="text-[0.6rem] uppercase tracking-wide text-slate-500">Complexity</p>
+                  <p class="mt-1 text-lg font-semibold text-white">{{ sessionStats().complexity }}</p>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                  <p class="text-[0.6rem] uppercase tracking-wide text-slate-500">Export ready</p>
+                  <p class="mt-1 text-lg font-semibold text-white">{{ sessionStats().exportReady ? 'Ready' : 'Pending' }}</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Last action - {{ sessionStats().lastAction || 'Standby' }}</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <h3 class="text-sm font-semibold text-white">Export & Share</h3>
+              <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                @for (option of shareOptions; track option.id) {
+                  <button
+                    type="button"
+                    (click)="triggerShare(option.id)"
+                    class="flex flex-col gap-1 rounded-xl border px-3 py-3 text-left text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                    [style.borderColor]="option.id === 'apk' && sessionStats().exportReady ? 'rgba(34,197,94,0.6)' : 'rgba(51,65,85,0.6)'"
+                    [style.background]="option.id === 'apk' ? 'rgba(21,128,61,0.25)' : 'rgba(12,18,32,0.8)'"
+                  >
+                    <span class="text-sm font-semibold text-white">{{ option.label }}</span>
+                    <span class="text-[0.6rem] uppercase tracking-wide text-slate-400">{{ option.target }}</span>
+                    <span class="text-xs text-slate-300">{{ option.description }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 md:col-span-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white">Activity Log</h3>
+                <span class="text-[0.6rem] uppercase tracking-wide text-slate-500">{{ actionLog().length }} events</span>
+              </div>
+              <div class="mt-3 max-h-60 space-y-2 overflow-y-auto pr-1">
+                @if (!actionLog().length) {
+                  <p class="text-xs text-slate-400">Touch interactions will appear here.</p>
+                } @else {
+                  @for (event of actionLog(); track event.timestamp + event.label) {
+                    <div class="rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2">
+                      <div class="flex items-center justify-between text-[0.6rem] uppercase tracking-wide text-slate-500">
+                        <span>{{ event.timestamp }}</span>
+                        <span class="text-cyan-300">{{ event.type }}</span>
+                      </div>
+                      <p class="mt-1 text-sm font-semibold text-white">{{ event.label }}</p>
+                      <p class="text-[0.65rem] text-slate-300">{{ event.details }}</p>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            @if (inspectorFocus(); as focus) {
+              <div class="rounded-2xl border border-cyan-400/40 bg-cyan-500/10 p-4 md:col-span-2">
+                <h3 class="text-sm font-semibold text-white">Brick Inspector</h3>
+                <div class="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-200">
+                  <div>
+                    <p class="text-[0.6rem] uppercase tracking-wide text-cyan-200/80">Brick</p>
+                    <p class="font-semibold text-white">{{ focus.brick.brickId }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[0.6rem] uppercase tracking-wide text-cyan-200/80">Color</p>
+                    <p class="font-semibold text-white">{{ focus.brick.color.name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[0.6rem] uppercase tracking-wide text-cyan-200/80">Position</p>
+                    <p class="font-semibold text-white">Row {{ focus.row + 1 }} - Col {{ focus.column + 1 }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[0.6rem] uppercase tracking-wide text-cyan-200/80">Layer</p>
+                    <p class="font-semibold text-white">{{ focus.layerId }}</p>
+                  </div>
+                </div>
+                <p class="mt-3 text-[0.65rem] text-cyan-100/80">{{ focus.brick.metadata.notes }}</p>
+              </div>
+            }
+
+            @if (exportPreview(); as exportJson) {
+              <div class="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-4 md:col-span-2">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-semibold text-white">Android Export Payload</h3>
+                  <button
+                    type="button"
+                    (click)="closeExportPreview()"
+                    class="rounded-full border border-emerald-300/60 bg-emerald-500/20 px-3 py-1 text-[0.6rem] font-semibold text-emerald-100 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                  >
+                    Close
+                  </button>
+                </div>
+                <pre class="mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border border-emerald-400/30 bg-emerald-950/30 p-3 text-xs text-emerald-100/90">{{ exportJson }}</pre>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      @if (activeDrawer(); as drawer) {
+        <div class="fixed inset-0 z-50 flex flex-col justify-end bg-slate-950/70 backdrop-blur-sm" (click)="closeDrawer()">
+          <div class="max-h-[80vh] rounded-t-3xl border-t border-slate-800 bg-slate-900 px-4 py-5 sm:px-6" (click)="$event.stopPropagation()">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold text-white">
+                {{ drawer === 'library' ? 'Building Palette' : drawer === 'palette' ? 'Color Palette' : 'Instruction Steps' }}
+              </h3>
+              <button
+                type="button"
+                (click)="closeDrawer()"
+                class="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+            <div class="mt-4 space-y-4">
+              @if (drawer === 'library') {
+                <div class="flex items-center gap-2 overflow-x-auto">
                   @for (category of brickCategories; track category.id) {
                     <button
                       type="button"
                       (click)="selectCategory(category.id)"
-                      class="rounded-full border px-4 py-2 text-sm font-medium text-white transition"
+                      class="rounded-full border px-4 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
                       [style.borderColor]="selectedCategoryId() === category.id ? 'rgba(34,211,238,0.7)' : 'rgba(148,163,184,0.25)'"
-                      [style.background]="selectedCategoryId() === category.id ? 'rgba(6,182,212,0.22)' : 'rgba(12,18,32,0.7)'"
+                      [style.background]="selectedCategoryId() === category.id ? 'rgba(6,182,212,0.22)' : 'rgba(15,23,42,0.85)'"
                     >
                       {{ category.name }}
                     </button>
                   }
                 </div>
-                <div class="mt-4 space-y-3">
+                <div class="space-y-3">
                   @if (!visibleBricks().length) {
-                    <p class="text-sm text-slate-400">No bricks available in this group yet.</p>
+                    <p class="text-sm text-slate-400">No bricks in this group yet.</p>
                   } @else {
                     @for (brick of visibleBricks(); track brick.id) {
                       <button
                         type="button"
                         (click)="selectBrick(brick.id)"
                         class="w-full rounded-2xl border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-                        [style.borderColor]="activeBrick()?.id === brick.id ? 'rgba(96,165,250,0.65)' : 'rgba(148,163,184,0.2)'"
-                        [style.background]="activeBrick()?.id === brick.id ? 'rgba(37,99,235,0.18)' : 'rgba(10,14,25,0.7)'"
+                        [style.borderColor]="activeBrick()?.id === brick.id ? 'rgba(96,165,250,0.65)' : 'rgba(148,163,184,0.25)'"
+                        [style.background]="activeBrick()?.id === brick.id ? 'rgba(37,99,235,0.2)' : 'rgba(15,23,42,0.85)'"
                       >
                         <div class="flex items-start justify-between gap-3">
                           <div>
-                            <p class="text-base font-semibold text-white">{{ brick.name }}</p>
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Studs &middot; {{ brick.studs }}</p>
-                            <p class="mt-1 text-sm text-slate-300">{{ brick.recommendedUse }}</p>
+                            <p class="text-sm font-semibold text-white">{{ brick.name }}</p>
+                            <p class="text-[0.6rem] uppercase tracking-wide text-slate-400">{{ brick.studs }}</p>
+                            <p class="mt-1 text-xs text-slate-300">{{ brick.recommendedUse }}</p>
                           </div>
-                          <span class="rounded-xl bg-slate-900/70 px-3 py-1 text-[0.65rem] uppercase tracking-wide text-cyan-200">{{ brick.complexity }}</span>
+                          <span class="rounded-lg bg-slate-900/70 px-3 py-1 text-[0.6rem] uppercase tracking-wide text-cyan-200">{{ brick.complexity }}</span>
                         </div>
-                        <p class="mt-2 text-xs text-slate-400">Pairs with: {{ brick.compatibleWith.join(', ') }}</p>
+                        <p class="mt-2 text-[0.6rem] text-slate-400">Pairs with {{ brick.compatibleWith.join(', ') }}</p>
                       </button>
                     }
                   }
                 </div>
-              </div>
-
-              @if (activeBrick(); as brick) {
-                <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <h3 class="text-lg font-semibold text-white">Active Brick Blueprint</h3>
-                  <p class="mt-1 text-sm text-slate-300">{{ brick.recommendedUse }}</p>
-                  <div class="mt-4 grid gap-4 text-sm text-slate-200 sm:grid-cols-2">
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-slate-400">Identifier</p>
-                      <p class="font-semibold text-white">{{ brick.id }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-slate-400">Studs</p>
-                      <p class="font-semibold text-white">{{ brick.studs }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-slate-400">Geometry</p>
-                      <p class="font-semibold text-white">{{ brick.geometry }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs uppercase tracking-wide text-slate-400">Complexity</p>
-                      <p class="font-semibold text-white">{{ brick.complexity }}</p>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <h3 class="text-lg font-semibold text-white">Color Palette</h3>
-                <div class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+              } @else if (drawer === 'palette') {
+                <div class="grid grid-cols-3 gap-3 sm:grid-cols-4">
                   @for (color of colorPalette; track color.name; let index = $index) {
                     <button
                       type="button"
                       (click)="selectColor(index)"
-                      class="flex flex-col items-center rounded-2xl border px-3 py-3 text-center text-xs font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
-                      [style.borderColor]="selectedColorIndex() === index ? 'rgba(244,114,182,0.7)' : 'rgba(148,163,184,0.2)'"
-                      [style.background]="selectedColorIndex() === index ? 'rgba(244,114,182,0.18)' : 'rgba(10,14,26,0.7)'"
+                      class="flex flex-col items-center rounded-2xl border px-3 py-3 text-center text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
+                      [style.borderColor]="selectedColorIndex() === index ? 'rgba(244,114,182,0.7)' : 'rgba(148,163,184,0.25)'"
+                      [style.background]="selectedColorIndex() === index ? 'rgba(244,114,182,0.2)' : 'rgba(15,23,42,0.85)'"
                     >
                       <span class="h-10 w-10 rounded-full border border-white/30" [style.background]="color.hex"></span>
-                      <span class="mt-2 text-xs font-semibold text-white">{{ color.name }}</span>
-                      <span class="text-[0.65rem] uppercase tracking-wide text-slate-400">{{ color.finish }}</span>
+                      <span class="mt-2 text-xs text-white">{{ color.name }}</span>
+                      <span class="text-[0.6rem] uppercase tracking-wide text-slate-400">{{ color.finish }}</span>
                     </button>
                   }
                 </div>
-              </div>
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <h3 class="text-lg font-semibold text-white">Guided Build Timeline</h3>
-                <div class="mt-4 space-y-3">
+              } @else {
+                <div class="space-y-3">
                   @for (instruction of instructions; track instruction.order) {
                     <button
                       type="button"
                       (click)="setInstructionStep(instruction.order)"
                       class="w-full rounded-2xl border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-400"
-                      [style.borderColor]="selectedInstructionStep() === instruction.order ? 'rgba(192,132,252,0.7)' : 'rgba(148,163,184,0.2)'"
-                      [style.background]="selectedInstructionStep() === instruction.order ? 'rgba(168,85,247,0.2)' : 'rgba(10,14,26,0.7)'"
+                      [style.borderColor]="selectedInstructionStep() === instruction.order ? 'rgba(192,132,252,0.7)' : 'rgba(148,163,184,0.25)'"
+                      [style.background]="selectedInstructionStep() === instruction.order ? 'rgba(168,85,247,0.2)' : 'rgba(15,23,42,0.85)'"
                     >
                       <div class="flex items-center justify-between">
                         <div>
-                          <p class="text-xs uppercase tracking-wide text-slate-400">Step {{ instruction.order }}</p>
+                          <p class="text-[0.6rem] uppercase tracking-wide text-slate-400">Step {{ instruction.order }}</p>
                           <p class="text-sm font-semibold text-white">{{ instruction.title }}</p>
                         </div>
-                        <span class="rounded-full bg-purple-500/20 px-3 py-1 text-[0.65rem] uppercase tracking-wide text-purple-200">{{ instruction.focus }}</span>
+                        <span class="rounded-full bg-purple-500/20 px-3 py-1 text-[0.6rem] uppercase tracking-wide text-purple-200">{{ instruction.focus }}</span>
                       </div>
                       <p class="mt-2 text-xs text-slate-300">{{ instruction.description }}</p>
                     </button>
                   }
                 </div>
-              </div>
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <h3 class="text-lg font-semibold text-white">Android Optimization Roadmap</h3>
-                <div class="mt-4 space-y-3">
-                  @for (item of androidOptimizations; track item.id) {
-                    <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                      <div class="flex items-center justify-between">
-                        <p class="text-sm font-semibold text-white">{{ item.title }}</p>
-                        <span
-                          class="rounded-full px-3 py-1 text-[0.65rem] uppercase tracking-wide"
-                          [style.background]="item.status === 'ready' ? 'rgba(34,197,94,0.2)' : item.status === 'planned' ? 'rgba(250,204,21,0.18)' : 'rgba(239,68,68,0.18)'"
-                          [style.color]="item.status === 'ready' ? '#4ade80' : item.status === 'planned' ? '#facc15' : '#f87171'"
-                        >
-                          {{ item.status }}
-                        </span>
-                      </div>
-                      <p class="mt-2 text-xs text-slate-300">{{ item.description }}</p>
-                      <p class="mt-2 text-xs text-slate-400">Toolkit &middot; {{ item.tool }}</p>
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <h3 class="text-lg font-semibold text-white">Export & Share</h3>
-                <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                  @for (option of shareOptions; track option.id) {
-                    <button
-                      type="button"
-                      (click)="triggerShare(option.id)"
-                      class="flex h-full flex-col rounded-2xl border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-                      [style.borderColor]="option.id === 'apk' && sessionStats().exportReady ? 'rgba(74,222,128,0.7)' : 'rgba(148,163,184,0.2)'"
-                      [style.background]="option.id === 'apk' ? 'rgba(21,128,61,0.22)' : 'rgba(10,14,26,0.7)'"
-                    >
-                      <span class="text-sm font-semibold text-white">{{ option.label }}</span>
-                      <span class="text-xs uppercase tracking-wide text-slate-400">{{ option.target }}</span>
-                      <p class="mt-2 text-sm text-slate-300">{{ option.description }}</p>
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-semibold text-white">Session Activity</h3>
-                  <span class="text-xs text-slate-400">{{ actionLog().length }} events</span>
-                </div>
-                <div class="mt-4 max-h-60 space-y-3 overflow-y-auto pr-1">
-                  @if (!actionLog().length) {
-                    <p class="text-sm text-slate-400">Build interactions will appear here.</p>
-                  } @else {
-                    @for (event of actionLog(); track event.timestamp + event.label) {
-                      <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
-                        <div class="flex items-center justify-between">
-                          <span class="text-xs uppercase tracking-wide text-slate-400">{{ event.timestamp }}</span>
-                          <span class="text-xs font-semibold text-cyan-300">{{ event.type }}</span>
-                        </div>
-                        <p class="mt-1 text-sm font-semibold text-white">{{ event.label }}</p>
-                        <p class="text-xs text-slate-300">{{ event.details }}</p>
-                      </div>
-                    }
-                  }
-                </div>
-              </div>
+              }
             </div>
           </div>
-        </section>
-      } @else if (activeTab() === 'library') {
-        <section class="space-y-10">
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+        </div>
+      }
+    } @else if (activeTab() === 'library') {
+      <section class="flex-1 overflow-y-auto px-4 pb-32 pt-6 sm:px-6">
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
             <h2 class="text-2xl font-semibold text-white">Mobile Brick Intelligence</h2>
-            <p class="mt-2 max-w-3xl text-sm text-slate-300">
+            <p class="mt-2 text-sm text-slate-300">
               Every category streams a curated subset of the BrickLink inventory that is optimized for handheld building. Catalogs synchronize with offline storage to support builds without a network connection.
             </p>
             <div class="mt-6 grid gap-4 md:grid-cols-2">
               @for (category of brickCategories; track category.id) {
-                <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
                   <p class="text-sm font-semibold text-white">{{ category.name }}</p>
                   <p class="mt-1 text-xs text-slate-400">{{ category.description }}</p>
                 </div>
@@ -435,20 +435,20 @@
             </div>
           </div>
 
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
             <h3 class="text-xl font-semibold text-white">Catalog Preview</h3>
             <div class="mt-5 grid gap-4 md:grid-cols-2">
               @for (category of brickCategories; track category.id) {
-                <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
                   <div class="flex items-center justify-between">
                     <p class="text-sm font-semibold text-white">{{ category.name }}</p>
                     <span class="text-xs text-slate-400">{{ getBricksForCategory(category.id).length }} bricks</span>
                   </div>
                   <div class="mt-3 space-y-2 text-sm text-slate-300">
                     @for (brick of getBricksForCategory(category.id); track brick.id) {
-                      <div class="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2">
+                      <div class="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
                         <p class="font-semibold text-white">{{ brick.name }}</p>
-                        <p class="text-xs text-slate-400">Studs {{ brick.studs }} &middot; {{ brick.geometry }}</p>
+                        <p class="text-xs text-slate-400">Studs {{ brick.studs }} - {{ brick.geometry }}</p>
                       </div>
                     }
                   </div>
@@ -456,23 +456,25 @@
               }
             </div>
           </div>
-        </section>
-      } @else if (activeTab() === 'projects') {
-        <section class="space-y-10">
+        </div>
+      </section>
+    } @else if (activeTab() === 'projects') {
+      <section class="flex-1 overflow-y-auto px-4 pb-32 pt-6 sm:px-6">
+        <div class="space-y-6">
           @if (activeProject(); as project) {
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
               <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Active Android layout</p>
+                  <p class="text-[0.6rem] uppercase tracking-[0.35em] text-slate-400">Active Android layout</p>
                   <h2 class="mt-2 text-3xl font-semibold text-white">{{ project.name }}</h2>
-                  <p class="mt-3 max-w-xl text-sm text-slate-300">{{ project.description }}</p>
+                  <p class="mt-3 text-sm text-slate-300">{{ project.description }}</p>
                   <div class="mt-4 flex flex-wrap gap-3 text-xs text-slate-300">
-                    <span class="rounded-full border border-white/10 px-3 py-1">{{ project.bricksUsed }} bricks</span>
-                    <span class="rounded-full border border-white/10 px-3 py-1">Progress {{ project.progress }}%</span>
-                    <span class="rounded-full border border-white/10 px-3 py-1">Edited {{ project.lastEdited }}</span>
+                    <span class="rounded-full border border-slate-700 px-3 py-1">{{ project.bricksUsed }} bricks</span>
+                    <span class="rounded-full border border-slate-700 px-3 py-1">Progress {{ project.progress }}%</span>
+                    <span class="rounded-full border border-slate-700 px-3 py-1">Edited {{ project.lastEdited }}</span>
                   </div>
                 </div>
-                <div class="grid gap-3 text-sm text-slate-200">
+                <div class="grid gap-3 text-xs text-slate-200">
                   @for (tag of project.tags; track tag) {
                     <span class="rounded-full border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-center">{{ tag }}</span>
                   }
@@ -486,40 +488,42 @@
               <button
                 type="button"
                 (click)="selectProject(project.id)"
-                class="rounded-3xl border px-5 py-6 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
-                [style.borderColor]="activeProject()?.id === project.id ? 'rgba(56,189,248,0.7)' : 'rgba(148,163,184,0.2)'"
-                [style.background]="activeProject()?.id === project.id ? 'rgba(37,99,235,0.22)' : 'rgba(10,14,26,0.7)'"
+                class="rounded-2xl border px-5 py-6 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                [style.borderColor]="activeProject()?.id === project.id ? 'rgba(56,189,248,0.7)' : 'rgba(148,163,184,0.25)'"
+                [style.background]="activeProject()?.id === project.id ? 'rgba(37,99,235,0.22)' : 'rgba(12,18,32,0.75)'"
               >
                 <p class="text-lg font-semibold text-white">{{ project.name }}</p>
                 <p class="mt-2 text-sm text-slate-300">{{ project.description }}</p>
                 <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
                   @for (tag of project.tags; track tag) {
-                    <span class="rounded-full border border-white/10 px-3 py-1">{{ tag }}</span>
+                    <span class="rounded-full border border-slate-700 px-3 py-1">{{ tag }}</span>
                   }
                 </div>
               </button>
             }
           </div>
-        </section>
-      } @else if (activeTab() === 'market') {
-        <section class="space-y-8">
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+        </div>
+      </section>
+    } @else if (activeTab() === 'market') {
+      <section class="flex-1 overflow-y-auto px-4 pb-32 pt-6 sm:px-6">
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
             <h2 class="text-2xl font-semibold text-white">Marketplace Spotlight</h2>
-            <p class="mt-2 max-w-3xl text-sm text-slate-300">
+            <p class="mt-2 text-sm text-slate-300">
               Curated BrickLink Studio experiences tuned for Android build sessions. Each kit supports mobile gestures, offline instructions, and APK exports for club sharing.
             </p>
             <div class="mt-6 grid gap-4 md:grid-cols-2">
               @for (item of marketplaceItems; track item.id) {
-                <div class="rounded-2xl border border-white/10 bg-slate-950/65 p-5">
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/65 p-5">
                   <div class="flex items-center justify-between">
                     <p class="text-lg font-semibold text-white">{{ item.title }}</p>
                     <span class="text-sm font-semibold text-emerald-300">{{ item.price }}</span>
                   </div>
-                  <p class="mt-2 text-sm text-slate-300">Designer &middot; {{ item.designer }}</p>
-                  <p class="mt-1 text-xs text-slate-400">{{ item.brickCount }} bricks &middot; Rating {{ item.rating }}</p>
+                  <p class="mt-2 text-sm text-slate-300">Designer - {{ item.designer }}</p>
+                  <p class="mt-1 text-xs text-slate-400">{{ item.brickCount }} bricks - Rating {{ item.rating }}</p>
                   <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
                     @for (tag of item.tags; track tag) {
-                      <span class="rounded-full border border-white/10 px-3 py-1">{{ tag }}</span>
+                      <span class="rounded-full border border-slate-700 px-3 py-1">{{ tag }}</span>
                     }
                   </div>
                   <p class="mt-3 text-xs text-slate-400">Optimized for: {{ item.optimizedFor.join(', ') }}</p>
@@ -527,40 +531,52 @@
               }
             </div>
           </div>
-        </section>
-      } @else {
-        <section class="space-y-8">
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+        </div>
+      </section>
+    } @else {
+      <section class="flex-1 overflow-y-auto px-4 pb-32 pt-6 sm:px-6">
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
             <h2 class="text-2xl font-semibold text-white">Learning Lab Tracks</h2>
-            <p class="mt-2 max-w-3xl text-sm text-slate-300">
+            <p class="mt-2 text-sm text-slate-300">
               Build mastery with guided Android-friendly curriculum. Each mission blends touch workflows, BrickLink exports, and APK packaging drills.
             </p>
             <div class="mt-6 grid gap-4 md:grid-cols-2">
               @for (track of learningTracks; track track.id) {
-                <div class="rounded-2xl border border-white/10 bg-slate-950/65 p-5">
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/65 p-5">
                   <div class="flex items-center justify-between">
                     <p class="text-lg font-semibold text-white">{{ track.title }}</p>
                     <span class="text-xs text-slate-400">{{ track.duration }}</span>
                   </div>
-                  <p class="mt-2 text-sm text-slate-300">Focus &middot; {{ track.focus }}</p>
+                  <p class="mt-2 text-sm text-slate-300">Focus - {{ track.focus }}</p>
                   <ul class="mt-3 space-y-2 text-xs text-slate-300">
                     @for (checkpoint of track.checkpoints; track checkpoint) {
-                      <li class="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2">{{ checkpoint }}</li>
+                      <li class="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">{{ checkpoint }}</li>
                     }
                   </ul>
                 </div>
               }
             </div>
           </div>
-        </section>
-      }
-    </main>
+        </div>
+      </section>
+    }
   </div>
 
-  <footer class="fixed inset-x-0 bottom-0 border-t border-white/10 bg-slate-950/85 backdrop-blur">
-    <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 text-xs text-slate-400">
-      <span>LEGO Build Studio &middot; Android export ready</span>
-      <span>Session bricks: {{ sessionStats().totalBricks }}</span>
+  <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div class="mx-auto flex max-w-5xl items-stretch gap-2 overflow-x-auto px-4 py-3">
+      @for (tab of appTabs; track tab.id) {
+        <button
+          type="button"
+          (click)="setActiveTab(tab.id)"
+          class="flex min-w-[7rem] flex-col rounded-xl border px-4 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+          [style.borderColor]="activeTab() === tab.id ? 'rgba(14,165,233,0.7)' : 'rgba(51,65,85,0.6)'"
+          [style.background]="activeTab() === tab.id ? 'rgba(12,74,110,0.3)' : 'rgba(10,12,20,0.7)'"
+        >
+          <span class="text-xs font-semibold text-white">{{ tab.label }}</span>
+          <span class="mt-1 text-[0.6rem] text-slate-400">{{ tab.tagline }}</span>
+        </button>
+      }
     </div>
-  </footer>
+  </nav>
 </div>

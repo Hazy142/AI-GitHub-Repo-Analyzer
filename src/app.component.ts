@@ -217,14 +217,14 @@ export class AppComponent {
     {
       id: 'undo',
       label: 'Undo',
-      icon: '?',
+      icon: 'UNDO',
       hint: 'Undo last change',
       action: 'undo',
     },
     {
       id: 'reset',
       label: 'Reset',
-      icon: 'CLR',
+      icon: 'RST',
       hint: 'Clear the workspace',
       action: 'reset',
     },
@@ -630,6 +630,10 @@ export class AppComponent {
   ]);
 
   visibleBricks = computed(() => this.brickCatalog[this.selectedCategoryId()] ?? []);
+
+  activeTouchModeConfig = computed(() =>
+    this.touchModes.find(mode => mode.id === this.selectedTouchMode()) ?? this.touchModes[0],
+  );
 
   activeBrick = computed(() => {
     const bricks = this.visibleBricks();
