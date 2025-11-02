@@ -14,7 +14,7 @@
           "options": {
             "outputPath": "dist",
             "index": "index.html",
-            "main": "index.tsx",
+            "browser": "index.tsx",
             "tsConfig": "tsconfig.json"
           },
           "configurations": {
